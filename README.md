@@ -1,5 +1,3 @@
-I'll help you design an architecture for this audio analysis and resynthesis tool. Here's a technical blueprint:
-
 ### 1. System Architecture
 
 ```python
