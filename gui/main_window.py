@@ -34,24 +34,43 @@ class MainWindow(QMainWindow):
         analysis_group = QGroupBox("Analysis Parameters")
         param_layout = QFormLayout()
         
+        # Window size (resolution in loristrck)
         self.win_size = QSpinBox()
-        self.win_size.setRange(256, 16384)
-        self.win_size.setValue(4096)
-        self.win_size.setSingleStep(256)
+        self.win_size.setRange(128, 32768)  # Power of 2 values
+        self.win_size.setValue(2048)
+        self.win_size.setSingleStep(128)
         
+        # Hop size
         self.hop_size = QSpinBox()
-        self.hop_size.setRange(64, 4096)
-        self.hop_size.setValue(512)
-        self.hop_size.setSingleStep(64)
+        self.hop_size.setRange(32, 8192)
+        self.hop_size.setValue(256)
+        self.hop_size.setSingleStep(32)
         
+        # Amplitude threshold
         self.threshold = QDoubleSpinBox()
         self.threshold.setRange(-120, 0)
         self.threshold.setValue(-90)
         self.threshold.setSingleStep(1)
         
+        # Minimum duration
+        self.min_duration = QDoubleSpinBox()
+        self.min_duration.setRange(0.001, 10.0)
+        self.min_duration.setValue(0.05)
+        self.min_duration.setSingleStep(0.01)
+        self.min_duration.setSuffix(" s")
+        
+        # Maximum number of partials
+        self.max_partials = QSpinBox()
+        self.max_partials.setRange(1, 10000)
+        self.max_partials.setValue(100)
+        self.max_partials.setSingleStep(10)
+        
         param_layout.addRow("Window Size:", self.win_size)
         param_layout.addRow("Hop Size:", self.hop_size)
         param_layout.addRow("Threshold (dB):", self.threshold)
+        param_layout.addRow("Min Duration:", self.min_duration)
+        param_layout.addRow("Max Partials:", self.max_partials)
+        
         analysis_group.setLayout(param_layout)
         control_layout.addWidget(analysis_group)
 
@@ -93,12 +112,12 @@ class MainWindow(QMainWindow):
 
         # Connect signals
         self.browse_btn.clicked.connect(self.load_audio)
+        # Update signal connections
         self.win_size.valueChanged.connect(self.update_analysis)
         self.hop_size.valueChanged.connect(self.update_analysis)
         self.threshold.valueChanged.connect(self.update_analysis)
-        self.waveform_btn.toggled.connect(self.update_visualization)
-        self.spectrogram_btn.toggled.connect(self.update_visualization)
-        self.partials_btn.toggled.connect(self.update_visualization)
+        self.min_duration.valueChanged.connect(self.update_analysis)
+        self.max_partials.valueChanged.connect(self.update_analysis)
 
     def load_audio(self):
         path, _ = QFileDialog.getOpenFileName(
@@ -118,9 +137,12 @@ class MainWindow(QMainWindow):
             return
             
         self.analyzer.analyze_signal(
+            self.analyzer.signal,  # Current audio signal
             win_size=self.win_size.value(),
             hop=self.hop_size.value(),
-            threshold=self.threshold.value()
+            threshold=self.threshold.value(),
+            min_dur=self.min_duration.value(),
+            max_partials=self.max_partials.value()
         )
         self.partial_editor.load_from_analyzer(self.analyzer)
         self.update_visualization()
