@@ -74,6 +74,10 @@ class MainWindow(QMainWindow):
         analysis_group.setLayout(param_layout)
         control_layout.addWidget(analysis_group)
 
+        # Analyze button
+        self.analyze_btn = QPushButton("Analyze")
+        control_layout.addWidget(self.analyze_btn)
+
         # Visualization controls
         view_group = QGroupBox("View Mode")
         view_layout = QVBoxLayout()
@@ -112,12 +116,7 @@ class MainWindow(QMainWindow):
 
         # Connect signals
         self.browse_btn.clicked.connect(self.load_audio)
-        # Update signal connections
-        self.win_size.valueChanged.connect(self.update_analysis)
-        self.hop_size.valueChanged.connect(self.update_analysis)
-        self.threshold.valueChanged.connect(self.update_analysis)
-        self.min_duration.valueChanged.connect(self.update_analysis)
-        self.max_partials.valueChanged.connect(self.update_analysis)
+        self.analyze_btn.clicked.connect(self.analyze_audio)
 
     def load_audio(self):
         path, _ = QFileDialog.getOpenFileName(
@@ -128,16 +127,13 @@ class MainWindow(QMainWindow):
         )
         if path:
             self.file_selector.setText(path)
-            self.analyzer.analyze_file(path)
-            self.partial_editor.load_from_analyzer(self.analyzer)
-            self.update_visualization()
 
-    def update_analysis(self):
+    def analyze_audio(self):
         if not self.file_selector.text():
             return
             
-        self.analyzer.analyze_signal(
-            self.analyzer.signal,  # Current audio signal
+        self.analyzer.analyze_file(
+            self.file_selector.text(),
             win_size=self.win_size.value(),
             hop=self.hop_size.value(),
             threshold=self.threshold.value(),
@@ -159,5 +155,9 @@ class MainWindow(QMainWindow):
         elif self.partials_btn.isChecked():
             # Partial visualization is handled by the partial editor
             pass
+
+        # Display number of partials analyzed
+        num_partials = self.analyzer.get_number_of_partials()
+        self.statusBar().showMessage(f"Number of partials analyzed: {num_partials}")
             
         self.canvas.draw()

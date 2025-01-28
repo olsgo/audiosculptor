@@ -44,3 +44,9 @@ class SpectralAnalyzer:
                              ('freq', 'f4'),
                              ('amp', 'f4'),
                              ('phase', 'f4')])
+
+    def get_number_of_partials(self):
+        """Return the number of partials analyzed"""
+        if self.partials is None:
+            return 0
+        return len(self.partials)
